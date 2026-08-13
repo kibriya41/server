@@ -9,7 +9,7 @@ exports.getOrderById = getOrderById;
 exports.updateOrderStatus = updateOrderStatus;
 exports.deleteOrder = deleteOrder;
 const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
-const index_js_1 = require("../generated/prisma/index.js");
+const client_1 = require("@prisma/client");
 async function createOrder(userId, items) {
     return prisma_js_1.default.$transaction(async (tx) => {
         let totalAmount = 0;
@@ -24,7 +24,7 @@ async function createOrder(userId, items) {
             if (!product) {
                 throw new Error(`Product not found: ${item.productId}`);
             }
-            if (product.status !== index_js_1.ProductStatus.ACTIVE) {
+            if (product.status !== client_1.ProductStatus.ACTIVE) {
                 throw new Error(`Product "${product.name}" is not currently available for purchase`);
             }
             if (product.stock < item.quantity) {
@@ -40,7 +40,7 @@ async function createOrder(userId, items) {
             });
             // Update product stock and status
             const newStock = product.stock - item.quantity;
-            const newStatus = newStock === 0 ? index_js_1.ProductStatus.OUT_OF_STOCK : product.status;
+            const newStatus = newStock === 0 ? client_1.ProductStatus.OUT_OF_STOCK : product.status;
             await tx.product.update({
                 where: { id: product.id },
                 data: {
@@ -54,7 +54,7 @@ async function createOrder(userId, items) {
             data: {
                 userId,
                 totalAmount,
-                status: index_js_1.OrderStatus.PENDING,
+                status: client_1.OrderStatus.PENDING,
                 items: {
                     create: orderItemsToCreate,
                 },
@@ -202,14 +202,14 @@ async function updateOrderStatus(orderId, newStatus) {
     }
     const currentStatus = existingOrder.status;
     // Invalid state transitions check
-    if (currentStatus === index_js_1.OrderStatus.DELIVERED && newStatus === index_js_1.OrderStatus.PENDING) {
+    if (currentStatus === client_1.OrderStatus.DELIVERED && newStatus === client_1.OrderStatus.PENDING) {
         throw new Error("Cannot revert a DELIVERED order to PENDING");
     }
-    if (currentStatus === index_js_1.OrderStatus.CANCELLED && newStatus === index_js_1.OrderStatus.SHIPPED) {
+    if (currentStatus === client_1.OrderStatus.CANCELLED && newStatus === client_1.OrderStatus.SHIPPED) {
         throw new Error("Cannot ship a CANCELLED order");
     }
     // Handle order cancellation stock restoration in a transaction
-    if (newStatus === index_js_1.OrderStatus.CANCELLED && currentStatus !== index_js_1.OrderStatus.CANCELLED) {
+    if (newStatus === client_1.OrderStatus.CANCELLED && currentStatus !== client_1.OrderStatus.CANCELLED) {
         return prisma_js_1.default.$transaction(async (tx) => {
             for (const item of existingOrder.items) {
                 const product = await tx.product.findUnique({
@@ -217,8 +217,8 @@ async function updateOrderStatus(orderId, newStatus) {
                 });
                 if (product) {
                     const restoredStock = product.stock + item.quantity;
-                    const restoredStatus = product.status === index_js_1.ProductStatus.OUT_OF_STOCK && restoredStock > 0
-                        ? index_js_1.ProductStatus.ACTIVE
+                    const restoredStatus = product.status === client_1.ProductStatus.OUT_OF_STOCK && restoredStock > 0
+                        ? client_1.ProductStatus.ACTIVE
                         : product.status;
                     await tx.product.update({
                         where: { id: product.id },

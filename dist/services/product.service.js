@@ -10,7 +10,7 @@ exports.updateProduct = updateProduct;
 exports.deleteProduct = deleteProduct;
 const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
 const slug_js_1 = require("../lib/slug.js");
-const index_js_1 = require("../generated/prisma/index.js");
+const client_1 = require("@prisma/client");
 async function createProduct(data) {
     const category = await prisma_js_1.default.category.findFirst({
         where: {
@@ -22,7 +22,7 @@ async function createProduct(data) {
         throw new Error("Category not found");
     }
     const slug = (0, slug_js_1.createSlug)(data.name);
-    const status = data.stock > 0 ? index_js_1.ProductStatus.ACTIVE : index_js_1.ProductStatus.OUT_OF_STOCK;
+    const status = data.stock > 0 ? client_1.ProductStatus.ACTIVE : client_1.ProductStatus.OUT_OF_STOCK;
     return prisma_js_1.default.product.create({
         data: {
             name: data.name,
@@ -195,10 +195,10 @@ async function updateProduct(id, data) {
     }
     if (data.stock !== undefined) {
         if (data.stock > 0) {
-            updateData.status = data.status || index_js_1.ProductStatus.ACTIVE;
+            updateData.status = data.status || client_1.ProductStatus.ACTIVE;
         }
         else {
-            updateData.status = index_js_1.ProductStatus.OUT_OF_STOCK;
+            updateData.status = client_1.ProductStatus.OUT_OF_STOCK;
         }
     }
     return prisma_js_1.default.product.update({

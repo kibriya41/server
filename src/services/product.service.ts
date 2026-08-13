@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { createSlug } from "../lib/slug.js";
-import { ProductStatus } from "../generated/prisma/index.js";
+import { ProductStatus } from "@prisma/client";
 
 export interface GetProductsQuery {
   page?: number;

@@ -5,7 +5,7 @@ exports.login = login;
 exports.me = me;
 const auth_service_js_1 = require("../services/auth.service.js");
 const auth_validator_js_1 = require("../validators/auth.validator.js");
-async function register(req, res) {
+async function register(req, res, next) {
     try {
         const validatedData = auth_validator_js_1.registerSchema.parse(req.body);
         const result = await (0, auth_service_js_1.registerUser)(validatedData.name, validatedData.email, validatedData.password);
@@ -16,19 +16,10 @@ async function register(req, res) {
         });
     }
     catch (error) {
-        if (error instanceof Error) {
-            return res.status(400).json({
-                success: false,
-                message: error.message,
-            });
-        }
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong",
-        });
+        next(error);
     }
 }
-async function login(req, res) {
+async function login(req, res, next) {
     try {
         const validatedData = auth_validator_js_1.loginSchema.parse(req.body);
         const result = await (0, auth_service_js_1.loginUser)(validatedData.email, validatedData.password);
@@ -39,19 +30,10 @@ async function login(req, res) {
         });
     }
     catch (error) {
-        if (error instanceof Error) {
-            return res.status(400).json({
-                success: false,
-                message: error.message,
-            });
-        }
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong",
-        });
+        next(error);
     }
 }
-async function me(req, res) {
+async function me(req, res, next) {
     try {
         if (!req.userId) {
             return res.status(401).json({
@@ -67,15 +49,6 @@ async function me(req, res) {
         });
     }
     catch (error) {
-        if (error instanceof Error) {
-            return res.status(404).json({
-                success: false,
-                message: error.message,
-            });
-        }
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong",
-        });
+        next(error);
     }
 }
