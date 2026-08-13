@@ -43,7 +43,10 @@ export async function registerUser(
         },
       });
 
-  const token = generateToken(user.id);
+const token = generateToken(
+  user.id,
+  user.role
+);
 
   return {
     user: {
@@ -81,7 +84,10 @@ export async function loginUser(
     throw new Error("Invalid email or password");
   }
 
-  const token = generateToken(user.id);
+const token = generateToken(
+  user.id,
+  user.role
+);
 
   return {
     user: {

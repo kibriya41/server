@@ -14,8 +14,8 @@ enum UserRole {
 
 enum ProductStatus {
   ACTIVE
-  OUT_OF_STOCK
   INACTIVE
+  OUT_OF_STOCK
 }
 
 enum OrderStatus {
@@ -41,12 +41,15 @@ model User {
   isDeleted Boolean  @default(false)
 
   @@index([email])
+  @@index([role])
+  @@index([isDeleted])
   @@map("users")
 }
 
 model Category {
   id          String  @id @default(cuid())
   name        String  @unique
+  slug        String  @unique
   description String?
 
   products Product[]
@@ -55,12 +58,16 @@ model Category {
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
 
+  @@index([name])
+  @@index([slug])
+  @@index([isDeleted])
   @@map("categories")
 }
 
 model Product {
   id          String        @id @default(cuid())
   name        String
+  slug        String
   description String?
   price       Decimal       @db.Decimal(10, 2)
   stock       Int           @default(0)
@@ -77,15 +84,17 @@ model Product {
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
 
+  @@index([name])
   @@index([categoryId])
   @@index([status])
+  @@index([isDeleted])
   @@map("products")
 }
 
 model Review {
-  id      String  @id @default(cuid())
+  id      String @id @default(cuid())
   rating  Int
-  comment String?
+  comment String
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -97,8 +106,10 @@ model Review {
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
 
+  @@unique([userId, productId])
   @@index([productId])
   @@index([userId])
+  @@index([isDeleted])
   @@map("reviews")
 }
 
@@ -118,6 +129,7 @@ model Order {
 
   @@index([userId])
   @@index([status])
+  @@index([isDeleted])
   @@map("orders")
 }
 
@@ -131,6 +143,9 @@ model OrderItem {
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([productId])
